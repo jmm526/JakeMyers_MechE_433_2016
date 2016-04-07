@@ -31,8 +31,8 @@
 
 // DEVCFG3
 #pragma config USERID = 0 // some 16bit userid, doesn't matter what
-#pragma config PMDL1WAY = OFF // allow multiple reconfigurations
-#pragma config IOL1WAY = OFF // allow multiple reconfigurations
+#pragma config PMDL1WAY = ON // allow multiple reconfigurations
+#pragma config IOL1WAY = ON // allow multiple reconfigurations
 #pragma config FUSBIDIO = ON // USB pins controlled by USB module
 #pragma config FVBUSONIO = ON // USB BUSON controlled by USB module
 
@@ -54,13 +54,35 @@ int main() {
     DDPCONbits.JTAGEN = 0;
     
     // do your TRIS and LAT commands here
+    TRISAbits.TRISA4 = 0;       // RA4 is an output
+    LATAbits.LATA4 = 0;         // Turn Green LED on
+    
+    TRISBbits.TRISB4 = 1;       // RB4 is an input for push button
     
     __builtin_enable_interrupts();
     
     while(1) {
 	    // use _CP0_SET_COUNT(0) and _CP0_GET_COUNT() to test the PIC timing
-		// remember the core timer runs at half the CPU speed
+		// remember the core timer runs at half the CPU speed - 24 MHz
+        _CP0_SET_COUNT(0);
+        
+        while(_CP0_GET_COUNT() < 12000) {
+            while(PORTBbits.RB4 == 0) {;}       //If the button is pressed, stop blinking
+        }
+        
+        // We need an LED to blink at 1000 Hz
+        LATAINV = 0b10000;   //Toggle LED 
+        
     }
     
     
+}
+
+void delay(int num) {
+  int j;
+  for (j = 0; j < num; j++) { // number is 1 million
+    /*while(!PORTDbits.RD13) {
+        ;   // Pin D13 is the USER switch, low if pressed.
+    }*/
+  }
 }
